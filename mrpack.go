@@ -40,38 +40,22 @@ func downloadMods(packFolder string, jsonf map[string]interface{}) {
 						//fmt.Println(dwn.(string))
 						resp, err := http.Get(dwn.(string))
 						if err != nil {
-							panic(err)
+							color.Set(color.FgRed)
+							fmt.Println("ERROR: Could not download mod:", err)
+							color.Unset()
+							break
 						}
 						n, err := io.Copy(out, resp.Body)
 						if err != nil {
-							panic(err)
+							color.Set(color.FgRed)
+							fmt.Println("ERROR: Could not copy mod data:", err)
+							color.Unset()
+							break
 						}
 						defer resp.Body.Close()
 						_ = n // Just to make the compiler shut up
 
-						// Read SHA 512 hash
-						f, err := os.Open(packFolder + "mods/" + strings.Split(path, "/")[1])
-						if err != nil {
-							panic(err)
-						}
-
-						has := sha512.New()
-						if _, err := io.Copy(has, f); err != nil {
-							panic(err)
-						}
-						f.Close()
-
-						if hashes, ok := modMap["hashes"].(map[string]interface{}); ok {
-							fhas := hashes["sha512"].(string)
-							if fhas != hex.EncodeToString(has.Sum(nil)) {
-								color.Set(color.FgRed)
-								fmt.Println("Warning: Potential Fake Mod")
-								fmt.Println("The mod hash doesn't match what is recorded in the .mrpack, which may indicate a fake or modified version. Please verify the mod’s source and ensure it’s from a trusted provider. (e.g., Modrinth)")
-								fmt.Println("File deleted.")
-								color.Unset()
-								os.Remove(packFolder + "mods/" + strings.Split(path, "/")[1])
-							}
-						}
+						readSHA256(packFolder, path, modMap, true)
 					}
 					downloaded++
 				}
@@ -105,38 +89,22 @@ func downloadResourcePacks(packFolder string, jsonf map[string]interface{}) {
 						//fmt.Println(dwn.(string))
 						resp, err := http.Get(dwn.(string))
 						if err != nil {
-							panic(err)
+							color.Set(color.FgRed)
+							fmt.Println("ERROR: Could not download resourcepack:", err)
+							color.Unset()
+							break
 						}
 						n, err := io.Copy(out, resp.Body)
 						if err != nil {
-							panic(err)
+							color.Set(color.FgRed)
+							fmt.Println("ERROR: Could not copy resourcepack:", err)
+							color.Unset()
+							break
 						}
 						defer resp.Body.Close()
 						_ = n // Just to make the compiler shut up
 
-						// Read SHA 512 hash
-						f, err := os.Open(packFolder + "resourcepacks/" + strings.Split(path, "/")[1])
-						if err != nil {
-							panic(err)
-						}
-
-						has := sha512.New()
-						if _, err := io.Copy(has, f); err != nil {
-							panic(err)
-						}
-						f.Close()
-
-						if hashes, ok := modMap["hashes"].(map[string]interface{}); ok {
-							fhas := hashes["sha512"].(string)
-							if fhas != hex.EncodeToString(has.Sum(nil)) {
-								color.Set(color.FgRed)
-								fmt.Println("Warning: Potential Fake Resource Pack")
-								fmt.Println("The resource pack hash doesn't match what is recorded in the .mrpack, which may indicate a fake or modified version. Please verify the resource pack’s source and ensure it’s from a trusted provider. (e.g., Modrinth)")
-								fmt.Println("File deleted.")
-								color.Unset()
-								os.Remove(packFolder + "resourcepacks/" + strings.Split(path, "/")[1])
-							}
-						}
+						readSHA256(packFolder, path, modMap, false)
 					}
 					downloaded++
 				}
@@ -155,7 +123,7 @@ func addOverrides(packFolder string, tempFolder string) {
 		cmd, err := exec.Command("/bin/sh", "-c", "cp -r "+tempFolder+"overrides/* "+packFolder).Output()
 		if err != nil {
 			color.Set(color.FgRed)
-			fmt.Println("Could not copy overrides:", err)
+			fmt.Println("ERROR: Could not copy overrides:", err)
 			color.Unset()
 		}
 		_ = cmd
@@ -163,9 +131,47 @@ func addOverrides(packFolder string, tempFolder string) {
 		cmd, err := exec.Command("robocopy", tempFolder+"overrides", packFolder, "/s").Output()
 		if err != nil && err.Error() != "exit status 3" {
 			color.Set(color.FgRed)
-			fmt.Println("Could not copy overrides:", err)
+			fmt.Println("ERROR: Could not copy overrides:", err)
 			color.Unset()
 		}
 		_ = cmd
 	}
+}
+
+func readSHA256(packFolder, path string, modMap map[string]interface{}, ft bool) error {
+	var filetype string
+	if ft {
+		filetype = "mods/"
+	} else {
+		filetype = "resourcepacks/"
+	}
+	f, err := os.Open(packFolder + filetype + strings.Split(path, "/")[1])
+	if err != nil {
+		color.Set(color.FgRed)
+		fmt.Println("ERROR: Could not open file:", err)
+		color.Unset()
+		return err
+	}
+
+	has := sha512.New()
+	if _, err := io.Copy(has, f); err != nil {
+		color.Set(color.FgRed)
+		fmt.Println("ERROR: Could not copy file:", err)
+		color.Unset()
+		return err
+	}
+	f.Close()
+
+	if hashes, ok := modMap["hashes"].(map[string]interface{}); ok {
+		fhas := hashes["sha512"].(string)
+		if fhas != hex.EncodeToString(has.Sum(nil)) {
+			color.Set(color.FgRed)
+			fmt.Println("Warning: Potentially Modified File")
+			fmt.Println("The file hash doesn't match what is recorded in the .mrpack, which may indicate a fake or modified version. Please verify the file’s source and ensure it’s from a trusted provider. (e.g., Modrinth)")
+			fmt.Println("File deleted.")
+			color.Unset()
+			os.Remove(packFolder + filetype + strings.Split(path, "/")[1])
+		}
+	}
+	return nil
 }

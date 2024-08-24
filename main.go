@@ -14,12 +14,30 @@ import (
 )
 
 func main() {
+	if len(os.Args) == 1 {
+		color.Set(color.FgRed, color.Bold)
+		fmt.Println("ERROR: Not enough arguments.")
+		color.Unset()
+		os.Exit(1)
+	}
+
 	mrpack := os.Args[1]
 
-	downPtr := flag.Bool("download", true, "Set to false to skip downloads (default: true)")
-	entryPtr := flag.Bool("entry", true, "Set to true to make Minecraft launcher entry for the modpack (default: false)")
+	downPtr := flag.Bool("download", true, "Set to false to skip downloads")
+	entryPtr := flag.Bool("entry", true, "Set to false to skip making entry in the Minecraft launcher")
+	outPtr := flag.String("output", "default", "Set where the modpack will be extracted")
 
 	flag.Parse()
+
+	fs := flag.NewFlagSet("flags", flag.ExitOnError)
+
+	fs.StringVar(outPtr, "output", "default", "Set where the modpack will be extracted")
+	fs.BoolVar(downPtr, "download", true, "Set to false to skip downloads")
+	fs.BoolVar(entryPtr, "entry", true, "Set to false to skip making entry in the Minecraft launcher")
+
+	fs.Parse(os.Args[2:])
+
+	fmt.Println("mrpack-cli 1.0.0-alpha.2")
 
 	var tempfolder = "mrpack-cli-" + strconv.FormatInt(rand.Int64N(99999), 10) + "/"
 
@@ -40,7 +58,7 @@ func main() {
 		color.Unset()
 		os.Exit(1)
 	}
-	if jsonf["formatVersion"] != "1" {
+	if jsonf["formatVersion"].(float64) != 1 {
 		color.Set(color.FgYellow)
 		fmt.Println("WARNING: formatVersion not '1'.")
 		color.Unset()
@@ -49,7 +67,7 @@ func main() {
 	exePath, err := os.Executable()
 	if err != nil {
 		color.Set(color.FgRed)
-		fmt.Println("Error getting executable path: ", err)
+		fmt.Println("ERROR: getting executable path: ", err)
 		color.Unset()
 		os.Exit(1)
 	}
@@ -57,13 +75,32 @@ func main() {
 	exePath, err = filepath.Abs(exePath)
 	if err != nil {
 		color.Set(color.FgRed)
-		fmt.Println("Error getting absolute path: ", err)
+		fmt.Println("ERROR: getting absolute path: ", err)
 		color.Unset()
 		os.Exit(1)
 	}
 
 	var packFolder = ""
-	packFolder = filepath.Dir(exePath) + "/" + strings.ToLower(strings.ReplaceAll(jsonf["name"].(string), " ", "-")+"/")
+
+	if *outPtr == "default" {
+		packFolder = filepath.Dir(exePath) + "/" + strings.ToLower(strings.ReplaceAll(jsonf["name"].(string), " ", "-")+"/")
+	} else {
+		if !strings.HasSuffix(*outPtr, "\\") || !strings.HasSuffix(*outPtr, "/") {
+			if runtime.GOOS == "windows" {
+				packFolder = *outPtr + "\\"
+			} else {
+				packFolder = *outPtr + "/"
+			}
+		} else {
+			packFolder = *outPtr
+		}
+
+		_, err = os.Stat(packFolder)
+		if os.IsNotExist(err) {
+			os.MkdirAll(packFolder, 755)
+		}
+	}
+
 	os.MkdirAll(packFolder+"mods/", os.ModePerm)
 	os.MkdirAll(packFolder+"resourcepacks/", os.ModePerm)
 
@@ -81,12 +118,8 @@ func main() {
 	if *entryPtr {
 		if vern, ok := jsonf["dependencies"].(map[string]interface{}); ok {
 			if vern["fabric-loader"] != nil {
-				if installfabric(tempfolder, vern["minecraft"].(string), vern["fabric-loader"].(string)) != nil {
-					fmt.Println("Function: installfabric has errored out")
-				}
-				if addFabricEntry(packFolder, strings.ToLower(strings.ReplaceAll(jsonf["name"].(string), " ", "-")), vern["minecraft"].(string), vern["fabric-loader"].(string)) != nil {
-					fmt.Println("Function: addFabricEntry has errored out")
-				}
+				installfabric(tempfolder, vern["minecraft"].(string), vern["fabric-loader"].(string))
+				addEntry(packFolder, strings.ToLower(strings.ReplaceAll(jsonf["name"].(string), " ", "-")), jsonf["name"].(string)+" "+jsonf["versionId"].(string), vern["minecraft"].(string), vern["fabric-loader"].(string), "fabric-loader")
 			}
 		}
 	}
