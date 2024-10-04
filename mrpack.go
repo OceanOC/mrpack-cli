@@ -7,6 +7,8 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"os/exec"
+	"runtime"
 	"strconv"
 	"strings"
 )
@@ -109,6 +111,25 @@ func download(packFolder string, mrp Mrpack) error {
 		}
 		downloaded++
 
+	}
+	return nil
+}
+
+func copyOverrides(tempd, packFolder string) error {
+	fmt.Println("Copy: "+tempd+"overrides", "->", packFolder)
+	switch runtime.GOOS {
+	case "linux":
+		cmd, err := exec.Command("/bin/sh", "-c", "cp -r "+tempd+"overrides/* "+packFolder).Output()
+		if err != nil {
+			return err
+		}
+		_ = cmd
+	case "windows":
+		cmd, err := exec.Command("robocopy", tempd+"overrides", packFolder, "/s").Output()
+		if err != nil && err.Error() != "exit status 3" {
+			return err
+		}
+		_ = cmd
 	}
 	return nil
 }

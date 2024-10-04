@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
+	"log"
 	"os"
 	"os/exec"
 	"runtime"
@@ -23,8 +23,7 @@ func extract(tempd, packFolder string) (Mrpack, error) {
 				return mp, err
 			}
 		} else {
-			fmt.Println("unzip not found.")
-			os.Exit(2)
+			log.Fatal(err)
 		}
 	}
 
