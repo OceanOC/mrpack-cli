@@ -11,7 +11,7 @@ import (
 func main() {
 	app := &cli.App{
 		Name:  "mrpack-cli",
-		Usage: "make and extract .mrpacks",
+		Usage: "tool for extracting .mrpacks",
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
 				Name:    "add-entry",
@@ -23,23 +23,23 @@ func main() {
 		Action: func(cCtx *cli.Context) error {
 			tempd, err := createTempFolder()
 			if err != nil {
-				log.Fatal(err)
+				log.Fatalln(err)
 			}
 			mpack, err := extract(tempd, cCtx.Args().Get(0))
 			if err != nil {
-				log.Fatal(err)
+				log.Fatalln(err)
 			}
 
 			download(strings.ToLower(strings.ReplaceAll(mpack.Name, " ", "-"))+"/", mpack)
 
 			err = copyOverrides(tempd, strings.ToLower(strings.ReplaceAll(mpack.Name, " ", "-"))+"/")
 			if err != nil {
-				log.Fatal(err)
+				log.Fatalln(err)
 			}
 
 			err = os.RemoveAll(tempd)
 			if err != nil {
-				log.Fatal(err)
+				log.Fatalln(err)
 			}
 
 			loader := -1
@@ -56,7 +56,7 @@ func main() {
 			if cCtx.Bool("add-entry") {
 				err = addEntry(strings.ToLower(strings.ReplaceAll(mpack.Name, " ", "-")), loader, mpack)
 				if err != nil {
-					log.Fatal(err)
+					log.Fatalln(err)
 				}
 			}
 
@@ -65,6 +65,6 @@ func main() {
 	}
 
 	if err := app.Run(os.Args); err != nil {
-		log.Fatal(err)
+		log.Fatalln(err)
 	}
 }
