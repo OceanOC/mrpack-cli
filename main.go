@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"math/rand/v2"
@@ -17,6 +18,11 @@ func main() {
 	if len(os.Args) == 1 {
 		color.Set(color.FgRed, color.Bold)
 		fmt.Println("ERROR: Not enough arguments.")
+		color.Set(color.FgCyan, color.Bold)
+		fmt.Println("Hint: Try dragging and dropping the .mrpack file into the executable, press ENTER to exit.")
+		input := bufio.NewScanner(os.Stdin)
+		input.Scan()
+
 		color.Unset()
 		os.Exit(1)
 	}
