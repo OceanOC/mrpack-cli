@@ -4,6 +4,8 @@ import (
 	"context"
 	"log"
 	"os"
+	"path/filepath"
+	"strconv"
 
 	"github.com/fatih/color"
 	"github.com/urfave/cli/v3"
@@ -50,9 +52,19 @@ func main() {
 			if err != nil {
 				mpack.ExitCLIWithError("Couldn't get working directory", err)
 			}
-			mpack.outputDir = wd
+			if mpack.outputDir == "" {
+				mpack.outputDir = wd
+			} else {
+				mpack.outputDir = filepath.Clean(mpack.outputDir)
+			}
 
 			mpack.OpenMRPacks()
+
+			if len(mpack.files) == 1 {
+				mpack.ExitCLI(strconv.Itoa(len(mpack.files))+" modpack extracted and downloaded", Success)
+			} else {
+				mpack.ExitCLI(strconv.Itoa(len(mpack.files))+" modpacks extracted and downloaded", Success)
+			}
 			return nil
 		},
 	}
