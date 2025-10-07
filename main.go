@@ -13,7 +13,6 @@ import (
 
 func main() {
 	var mpack mrpcli
-	mpack.modPacks = make(map[string]ModPack)
 	cmd := &cli.Command{
 		Name:                   "mrpack-cli",
 		Usage:                  "download and add Modrinth modpacks to the vanilla launcher",
@@ -43,6 +42,12 @@ func main() {
 				Aliases:     []string{"d"},
 				Usage:       "dont download mods",
 				Destination: &mpack.nodownload,
+				Value:       false,
+			},
+			&cli.BoolFlag{
+				Name:        "nolauncher",
+				Usage:       "dont add modpack into launcher",
+				Destination: &mpack.nolauncher,
 				Value:       false,
 			},
 			&cli.StringFlag{

@@ -82,7 +82,10 @@ func (mpack mrpcli) OpenMRPacks() {
 			}
 		}
 
+		if !mpack.nolauncher {
+			mpack.AddToLauncher(mp)
+		}
+
 		fmt.Println("File completed" + " '" + fp + "'" + " (" + strconv.FormatInt(int64(i+1), 10) + "/" + strconv.FormatInt(int64(len(mpack.files)), 10) + ")")
-		mpack.modPacks[fp] = mp
 	}
 }

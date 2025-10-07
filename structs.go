@@ -1,10 +1,10 @@
 package main
 
 type mrpcli struct {
-	modPacks   map[string]ModPack
 	files      []string
 	automated  bool
 	nodownload bool
+	nolauncher bool
 	outputDir  string
 	modpackDir string
 }
@@ -36,4 +36,18 @@ type Files struct {
 type Environment struct {
 	Client string `json:"client"`
 	Server string `json:"server"`
+}
+
+type MineLauncher struct {
+	Profiles []map[string]Profile `json:"profiles"`
+}
+
+type Profile struct {
+	Created       string `json:"created"`
+	Name          string `json:"name"`
+	Type          string `json:"type"`
+	Icon          string `json:"icon"`
+	LastUsed      string `json:"lastUsed"`
+	GameDirectory string `json:"gameDir"`
+	LastVersionID string `json:"lastVersionId"`
 }
