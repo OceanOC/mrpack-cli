@@ -36,10 +36,11 @@ func (mpack mrpcli) OpenMRPacks() {
 				buf.ReadFrom(fo)
 
 				json.Unmarshal(buf.Bytes(), &mp)
-
-				mp.DownloadMods()
-
 				mpack.modpackDir = filepath.Join(mpack.outputDir, strings.ReplaceAll(strings.ToLower(mp.Name), " ", "-"))
+
+				if !mpack.nodownload {
+					mp.DownloadMods(mpack.modpackDir)
+				}
 
 				manifestFound = true
 			}

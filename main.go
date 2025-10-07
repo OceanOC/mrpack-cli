@@ -38,6 +38,13 @@ func main() {
 				Usage:       "removes color",
 				Destination: &color.NoColor,
 			},
+			&cli.BoolFlag{
+				Name:        "nodownload",
+				Aliases:     []string{"d"},
+				Usage:       "dont download mods",
+				Destination: &mpack.nodownload,
+				Value:       false,
+			},
 			&cli.StringFlag{
 				Name:        "output",
 				Aliases:     []string{"o"},

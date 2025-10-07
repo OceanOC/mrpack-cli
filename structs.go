@@ -4,6 +4,7 @@ type mrpcli struct {
 	modPacks   map[string]ModPack
 	files      []string
 	automated  bool
+	nodownload bool
 	outputDir  string
 	modpackDir string
 }
