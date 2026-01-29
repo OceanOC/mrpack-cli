@@ -40,7 +40,7 @@ func main() {
 			&cli.BoolFlag{
 				Name:        "nodownload",
 				Aliases:     []string{"d"},
-				Usage:       "dont download mods",
+				Usage:       "dont download mods, resourcepacks and shaders",
 				Destination: &mpack.nodownload,
 				Value:       false,
 			},

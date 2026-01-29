@@ -40,6 +40,8 @@ func (mpack mrpcli) OpenMRPacks() {
 
 				if !mpack.nodownload {
 					mp.DownloadMods(mpack.modpackDir)
+					mp.DownloadResourcePacks(mpack.modpackDir)
+					mp.DownloadShaders(mpack.modpackDir)
 				}
 
 				manifestFound = true
@@ -58,18 +60,20 @@ func (mpack mrpcli) OpenMRPacks() {
 		// Looping through the zip file twice is not very efficient but i cannot get extraction folder before the manifest
 		for _, rf := range r.File {
 			if strings.HasPrefix(rf.Name, "overrides") && !rf.FileInfo().IsDir() {
+				oN := strings.Replace(rf.Name, "overrides/", "", 1)
+
 				c := color.New(color.FgHiCyan).Add(color.Bold)
-				c.Printf("Extracting override: %s\n", rf.Name)
+				c.Printf("Extracting override: %s\n", oN)
 
 				fo, err := rf.Open()
 				if err != nil {
 					mpack.ExitCLIWithError("cannot open override", err)
 				}
-				err = os.MkdirAll(filepath.Dir(filepath.Join(mpack.modpackDir, rf.Name)), os.ModePerm)
+				err = os.MkdirAll(filepath.Dir(filepath.Join(mpack.modpackDir, oN)), os.ModePerm)
 				if err != nil {
 					mpack.ExitCLIWithError("cannot create directory", err)
 				}
-				file, err := os.Create(filepath.Join(mpack.modpackDir, rf.Name))
+				file, err := os.Create(filepath.Join(mpack.modpackDir, oN))
 				if err != nil {
 					mpack.ExitCLIWithError("cannot create file", err)
 				}
