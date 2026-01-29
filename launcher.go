@@ -55,7 +55,7 @@ func (mp mrpcli) AddToLauncher(pack ModPack) {
 		launcherJson = filepath.Join(minecraftLauncher, "launcher_profiles.json")
 	}
 
-	ljs, err := os.ReadFile(filepath.Join(minecraftLauncher, launcherJson))
+	ljs, err := os.ReadFile(launcherJson)
 	if err != nil {
 		mp.ExitCLIWithError("cannot read launcher_profiles", err)
 	}

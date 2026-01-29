@@ -39,7 +39,7 @@ type Environment struct {
 }
 
 type MineLauncher struct {
-	Profiles []map[string]Profile `json:"profiles"`
+	Profiles map[string]Profile `json:"profiles"`
 }
 
 type Profile struct {
