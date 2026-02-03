@@ -39,9 +39,7 @@ func (mpack mrpcli) OpenMRPacks() {
 				mpack.modpackDir = filepath.Join(mpack.outputDir, strings.ReplaceAll(strings.ToLower(mp.Name), " ", "-"))
 
 				if !mpack.nodownload {
-					mp.DownloadMods(mpack.modpackDir)
-					mp.DownloadResourcePacks(mpack.modpackDir)
-					mp.DownloadShaders(mpack.modpackDir)
+					mp.DownloadFiles(mpack.modpackDir)
 				}
 
 				manifestFound = true
