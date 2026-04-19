@@ -2,7 +2,10 @@ package main
 
 import (
 	"archive/zip"
+	"bufio"
 	"bytes"
+	"crypto/sha512"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -80,6 +83,57 @@ func (mpack mrpcli) OpenMRPacks() {
 				_, err = io.Copy(file, fo)
 				if err != nil {
 					mpack.ExitCLIWithError("cannot write to file", err)
+				}
+			}
+		}
+
+		fmt.Println("Checking Mod hashes...")
+
+		for _, mod := range mp.Files {
+			modJar := filepath.Join(mpack.modpackDir, mod.Path)
+
+			for sha, hash := range mod.Hashes {
+				if sha == "sha1" {
+					// sha1 should not be used to do file checksums
+					continue
+				}
+
+				file, err := os.ReadFile(modJar)
+				if err != nil {
+					fmt.Println("could not read file \"" + modJar + "\"")
+					continue
+				}
+
+				su := sha512.Sum512(file)
+				sum := hex.EncodeToString(su[:])
+
+				if sum != hash {
+					color.HiRed("WARNING: mod \"" + modJar + "\" does not match mrpack hash")
+					color.HiRed("This could mean that this file has been tampered with and may possibly contain malware. Please make sure you trust the mrpack author and have reviewed the mrpack contents before continuing.")
+
+					if mpack.automated {
+						mpack.ExitCLI("Mod files have been tampered with.", Error)
+					}
+
+					fmt.Println("Please select [1-2] and press ENTER")
+					fmt.Println("  1) Abort    [DEFAULT]")
+					fmt.Println("  2) Continue")
+
+					num, err := bufio.NewReader(os.Stdin).ReadBytes('\n')
+					if err != nil {
+						mpack.ExitCLIWithError("could not get option", err)
+					}
+
+					if strings.Contains(string(num), "1") && !strings.Contains(string(num), "2") {
+						mpack.ExitCLI("Mod files have been tampered with.", Error)
+					} else if !strings.Contains(string(num), "1") && strings.Contains(string(num), "2") {
+						color.HiRed("continuing...")
+						continue
+					} else {
+						mpack.ExitCLI("Mod files have been tampered with.", Error)
+					}
+				} else {
+					fmt.Println("mod \"" + mod.Path + "\" verified.")
 				}
 			}
 		}
