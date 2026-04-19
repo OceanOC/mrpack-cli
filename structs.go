@@ -27,11 +27,11 @@ type Dependencies struct {
 }
 
 type Files struct {
-	Path      string      `json:"path"`
-	Downloads []string    `json:"downloads"`
-	Hashes    []string    `json:"hashes"`
-	FileSize  int         `json:"fileSize"`
-	Env       Environment `json:"env"`
+	Path      string            `json:"path"`
+	Downloads []string          `json:"downloads"`
+	Hashes    map[string]string `json:"hashes"`
+	FileSize  int               `json:"fileSize"`
+	Env       Environment       `json:"env"`
 }
 
 type Environment struct {
